@@ -203,7 +203,7 @@
           '<a href="https://github.com/' + globs.user + '/' + globs.repo + '">' + 
           globs.repo + ' github repository</a>'
 
-        globs.source.innerHTML =  '<pre class="prettyprint">' +  content + '</pre>';
+        globs.source.innerHTML =  '<pre class="prettyprint" style="font-size:.8em;">' +  content + '</pre>';
 
         prettyPrint();
       }   
