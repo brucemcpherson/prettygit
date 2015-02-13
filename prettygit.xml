@@ -57,6 +57,7 @@
           .hover {
             display:inline-block;
           }
+
         }
         </style>
 
@@ -74,7 +75,10 @@
         </div>
 
         <div class="feedbox" id="feedbox" style="display:none;">
-
+          <div id="sourcetitlebox">
+          </div>
+          <div id="source">
+          </div>
         </div>
 
         <script>
@@ -115,6 +119,9 @@
           // this is where the feeds will be stored
           globs.feedBox = document.getElementById("feedbox");
           globs.tdTitle = document.getElementById("tdtitle");
+          globs.sourceTitleBox = document.getElementById("sourcetitlebox");
+          globs.source = document.getElementById("source");
+          globs.pretty = document.getElementById("pretty");
           globs.tdTitle.innerHTML = prefs.getString("feedtitle") + 
           " (click to lock/unlock view)";
 
@@ -128,7 +135,7 @@
           globs.locked = false;
           
     			globs.hoverElem.addEventListener("mouseout",over , false);
-  		   	globs.feedBox.addEventListener("click",lock , false);
+  		   	globs.source.addEventListener("click",lock , false);
     			globs.hoverElem.addEventListener ("load", function () {
     				// when the image loads, get its height and adjust the gadget height to match
     				gadgets.window.adjustHeight(getHeight(globs.hoverElem));
@@ -138,7 +145,7 @@
           function over () {
             // means we need to start showing the source
             globs.hoverElem.removeEventListener("mouseover", over );
-            globs.feedBox.addEventListener("mouseout", out, false);
+            globs.source.addEventListener("mouseout", out, false);
           	setVisiblity(globs.feedBox, true);
           	setVisiblity(globs.hoverElem, false);
           	gadgets.window.adjustHeight(getHeight(globs.feedBox));
@@ -156,7 +163,7 @@
           function out () {
             // we are showing the source and need to stop if not locked
             if (!globs.locked) {
-              globs.feedBox.removeEventListener("mouseleave",out);
+              globs.source.removeEventListener("mouseout",out);
               globs.hoverElem.addEventListener("mouseover",over , false);
   
             	setVisiblity(globs.feedBox, false);
@@ -179,7 +186,6 @@
         else {
           try {
             content = atob (data.data.content);
-            console.log(content);
             
             // escape in case its xml
             content = content.replace(/&/g, "&amp;")
@@ -192,13 +198,13 @@
           }
         }
         
-        globs.feedBox.innerHTML = '<span>' + 
-          '<div style="padding:2px;background-color:#303F9F;color:white;width:100%;">' + 
-          ' Source for ' + globs.path + 
-          ' from ' + globs.user + "'s " + globs.repo + ' github repository' + 
-          '<div style="background-color:white;color:black;font-size:.8em;padding:2px;">' + 
-          '<pre class="prettyprint">' +  content + '</pre></div>' + 
-          '</span>';
+        globs.sourceTitleBox.innerHTML = ' Source for ' + globs.path + 
+          ' from ' + globs.user + "'s " + 
+          '<a href="https://github.com/' + globs.user + '/' + globs.repo + '">' + 
+          globs.repo + ' github repository</a>'
+
+        globs.source.innerHTML =  '<pre class="prettyprint">' +  content + '</pre>';
+
         prettyPrint();
       }   
   	    	
