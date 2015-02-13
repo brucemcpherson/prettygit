@@ -41,9 +41,11 @@
 		default_value="http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU"/>
 
   <Content type="html"><![CDATA[
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.css"/>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
-  
+
+    <link rel="stylesheet" 
+      type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
+
         <style> {
           .feedbox {
             font-size:.8em;
@@ -80,7 +82,6 @@
         // register the entry point
         gadgets.util.registerOnLoadHandler(doFeed);
         
-
 
         function setVisiblity (e, value) {
          	e.style.display = value ? "inline-block" : "none";
@@ -178,6 +179,13 @@
         else {
           try {
             content = atob (data.data.content);
+            console.log(content);
+            
+            // escape in case its xml
+            content = content.replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
           }
           catch (err) {
             content = "failed to convert data from github " + err + ":perhaps browser is incapable";
@@ -188,7 +196,7 @@
           '<div style="padding:2px;background-color:#303F9F;color:white;width:100%;">' + 
           ' Source for ' + globs.path + 
           ' from ' + globs.user + "'s " + globs.repo + ' github repository' + 
-          '<div style="background-color:white;font-size:.8em;padding:2px;">' + 
+          '<div style="background-color:white;color:black;font-size:.8em;padding:2px;">' + 
           '<pre class="prettyprint">' +  content + '</pre></div>' + 
           '</span>';
         prettyPrint();
