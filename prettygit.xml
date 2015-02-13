@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+	<ModulePrefs title="prettygit gadget" height="100">
+  		<Require feature="dynamic-height"/>
+
+	</ModulePrefs>
+
+	<UserPref
+		name="user"
+		required="true"
+		datatype="string"
+		display_name="github username"
+		default_value="brucemcpherson"/>
+	
+	<UserPref
+		name="repo"
+		required="true"
+		datatype="string"
+		display_name="repo name"
+		default_value="cUseful"/>
+	  
+	<UserPref
+		name="path"
+		required="true"
+		datatype="string"
+		display_name="file path"
+		default_value="scripts/Code.js"/>
+
+	<UserPref
+		name="feedtitle"
+		required="true"
+		datatype="string"
+		display_name="image label"
+		default_value="Hover here for source"/>
+
+	<UserPref
+		name="imageurl"
+		required="true"
+		datatype="string"
+		display_name="image url for activation"
+		default_value="http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU"/>
+
+  <Content type="html"><![CDATA[
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.css"/>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
+  
+        <style> {
+          .feedbox {
+            font-size:.8em;
+            padding:6px;
+          }
+          .feedtitle {
+            font-weight:bold;
+          }
+          .hover {
+            display:inline-block;
+          }
+        }
+        </style>
+
+        <div id="hover" class="hover">
+            <table>
+                <tr>
+                    <td>
+                        <img id="hoverimg" src="http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU">
+                    </td>
+                    <td id="tdtitle" class="feedtitle">
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="feedbox" id="feedbox" style="display:none;">
+
+        </div>
+
+        <script>
+
+        // register the entry point
+        gadgets.util.registerOnLoadHandler(doFeed);
+        
+
+
+        function setVisiblity (e, value) {
+         	e.style.display = value ? "inline-block" : "none";
+        }
+
+        function getHeight (e) {
+         		return e.offsetHeight;
+        }
+
+        var globs = {};
+        
+        function doFeed() {
+
+				
+          // this is the image that gets out of the way when hovered over
+          globs.hoverElem = document.getElementById("hover");
+          globs.hoverImg = document.getElementById("hoverimg");
+
+          // get the pref parameters
+          var prefs = new gadgets.Prefs();
+          globs.user = prefs.getString("user");
+          globs.repo = prefs.getString("repo") ;
+          globs.path = prefs.getString("path") ;
+    
+          // construct the api url
+          globs.feedUrl = "https://api.github.com/repos/" + 
+              globs.user + "/" +
+              globs.repo + "/contents/" +
+              globs.path ;
+
+          // this is where the feeds will be stored
+          globs.feedBox = document.getElementById("feedbox");
+          globs.tdTitle = document.getElementById("tdtitle");
+          globs.tdTitle.innerHTML = prefs.getString("feedtitle") + 
+          " (click to lock/unlock view)";
+
+          // set up image events
+          globs.hoverImg.src = prefs.getString("imageurl");
+    			if(!globs.hoverImg.src){
+    				console.log ("disabled feed display - no image provided");
+    			}
+
+          // clicker on whether to lock visibility status
+          globs.locked = false;
+          
+    			globs.hoverElem.addEventListener("mouseout",over , false);
+  		   	globs.feedBox.addEventListener("click",lock , false);
+    			globs.hoverElem.addEventListener ("load", function () {
+    				// when the image loads, get its height and adjust the gadget height to match
+    				gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+    			}, false);
+
+          // happens on mouseover
+          function over () {
+            // means we need to start showing the source
+            globs.hoverElem.removeEventListener("mouseover", over );
+            globs.feedBox.addEventListener("mouseout", out, false);
+          	setVisiblity(globs.feedBox, true);
+          	setVisiblity(globs.hoverElem, false);
+          	gadgets.window.adjustHeight(getHeight(globs.feedBox));
+          };
+
+          // happens on mouseclick
+          function lock () {
+            globs.locked = !globs.locked;
+            
+            // do an implied out - if its locked then nothing will happen
+            out();
+          };
+          
+          // happens on mouseout
+          function out () {
+            // we are showing the source and need to stop if not locked
+            if (!globs.locked) {
+              globs.feedBox.removeEventListener("mouseleave",out);
+              globs.hoverElem.addEventListener("mouseover",over , false);
+  
+            	setVisiblity(globs.feedBox, false);
+            	setVisiblity(globs.hoverElem, true);
+            	gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+            }
+          };
+          
+          // get the content
+          getData(globs.feedUrl);
+
+      }
+      
+      //process it
+      function doIt(data) {
+        var content;
+        if(!data.data) {
+          content = "No data returned for " + globs.feedUrl;
+        }
+        else {
+          try {
+            content = atob (data.data.content);
+          }
+          catch (err) {
+            content = "failed to convert data from github " + err + ":perhaps browser is incapable";
+          }
+        }
+        
+        globs.feedBox.innerHTML = '<span>' + 
+          '<div style="padding:2px;background-color:#303F9F;color:white;width:100%;">' + 
+          ' Source for ' + globs.path + 
+          ' from ' + globs.user + "'s " + globs.repo + ' github repository' + 
+          '<div style="background-color:white;font-size:.8em;padding:2px;">' + 
+          '<pre class="prettyprint">' +  content + '</pre></div>' + 
+          '</span>';
+        prettyPrint();
+      }   
+  	    	
+    	// jsonp response
+    	function response(result) { 
+
+  	    if (!result.data  ) {
+  	    	console.log ( 'error - no data(' + JSON.stringify(result) + ")");
+  	    }
+  	    doIt(result);
+   	  }
+   	  
+   	  // easy jsonp.
+      function getData(url) {  
+
+		    var script = document.createElement('script');
+        script.src = url + "?callback=response";
+		    document.body.appendChild(script);
+  	  }
+	    	  
+	    	  
+  	</script>
+  ]]>
+  </Content>
+</Module>
