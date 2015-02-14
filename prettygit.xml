@@ -195,6 +195,8 @@
           }
           catch (err) {
             content = "failed to convert data from github " + err + ":perhaps browser is incapable";
+            content += "\nwas retrieving " + globs.feedUrl;
+            content += "\noriginal data was\n" + JSON.stringify(data,undefined, 2);
           }
         }
         
