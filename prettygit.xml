@@ -11,14 +11,14 @@
 		datatype="string"
 		display_name="github username"
 		default_value="brucemcpherson"/>
-	
+
 	<UserPref
 		name="repo"
 		required="true"
 		datatype="string"
 		display_name="repo name"
 		default_value="cUseful"/>
-	  
+
 	<UserPref
 		name="path"
 		required="true"
@@ -42,7 +42,7 @@
 
   <Content type="html"><![CDATA[
 
-    <link rel="stylesheet" 
+    <link rel="stylesheet"
       type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
 
@@ -85,7 +85,7 @@
 
         // register the entry point
         gadgets.util.registerOnLoadHandler(doFeed);
-        
+
 
         function setVisiblity (e, value) {
          	e.style.display = value ? "inline-block" : "none";
@@ -96,10 +96,10 @@
         }
 
         var globs = {};
-        
+
         function doFeed() {
 
-				
+
           // this is the image that gets out of the way when hovered over
           globs.hoverElem = document.getElementById("hover");
           globs.hoverImg = document.getElementById("hoverimg");
@@ -109,9 +109,9 @@
           globs.user = prefs.getString("user");
           globs.repo = prefs.getString("repo") ;
           globs.path = prefs.getString("path") ;
-    
+
           // construct the api url
-          globs.feedUrl = "https://api.github.com/repos/" + 
+          globs.feedUrl = "https://api.github.com/repos/" +
               globs.user + "/" +
               globs.repo + "/contents/" +
               globs.path ;
@@ -122,7 +122,7 @@
           globs.sourceTitleBox = document.getElementById("sourcetitlebox");
           globs.source = document.getElementById("source");
           globs.pretty = document.getElementById("pretty");
-          globs.tdTitle.innerHTML = prefs.getString("feedtitle") + 
+          globs.tdTitle.innerHTML = prefs.getString("feedtitle") +
           " (click to lock/unlock view)";
 
           // set up image events
@@ -133,7 +133,7 @@
 
           // clicker on whether to lock visibility status
           globs.locked = false;
-          
+
     			globs.hoverElem.addEventListener("mouseout",over , false);
   		   	globs.source.addEventListener("click",lock , false);
     			globs.hoverElem.addEventListener ("load", function () {
@@ -154,29 +154,29 @@
           // happens on mouseclick
           function lock () {
             globs.locked = !globs.locked;
-            
+
             // do an implied out - if its locked then nothing will happen
             out();
           };
-          
+
           // happens on mouseout
           function out () {
             // we are showing the source and need to stop if not locked
             if (!globs.locked) {
               globs.source.removeEventListener("mouseout",out);
               globs.hoverElem.addEventListener("mouseover",over , false);
-  
+
             	setVisiblity(globs.feedBox, false);
             	setVisiblity(globs.hoverElem, true);
             	gadgets.window.adjustHeight(getHeight(globs.hoverElem));
             }
           };
-          
+
           // get the content
           getData(globs.feedUrl);
 
       }
-      
+
       //process it
       function doIt(data) {
         var content;
@@ -185,8 +185,9 @@
         }
         else {
           try {
-            content = atob (data.data.content);
-            
+            // atob on mac breaks if spaces or \n
+            content = atob (data.data.content.replace(/\s/g,''));
+
             // escape in case its xml
             content = content.replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -199,35 +200,35 @@
             content += "\noriginal data was\n" + JSON.stringify(data,undefined, 2);
           }
         }
-        
-        globs.sourceTitleBox.innerHTML = ' Source for ' + globs.path + 
-          ' from ' + globs.user + "'s " + 
-          '<a href="https://github.com/' + globs.user + '/' + globs.repo + '">' + 
+
+        globs.sourceTitleBox.innerHTML = ' Source for ' + globs.path +
+          ' from ' + globs.user + "'s " +
+          '<a href="https://github.com/' + globs.user + '/' + globs.repo + '">' +
           globs.repo + ' github repository</a>'
 
         globs.source.innerHTML =  '<pre class="prettyprint" style="font-size:.8em;">' +  content + '</pre>';
 
         prettyPrint();
-      }   
-  	    	
+      }
+
     	// jsonp response
-    	function response(result) { 
+    	function response(result) {
 
   	    if (!result.data  ) {
   	    	console.log ( 'error - no data(' + JSON.stringify(result) + ")");
   	    }
   	    doIt(result);
    	  }
-   	  
+
    	  // easy jsonp.
-      function getData(url) {  
+      function getData(url) {
 
 		    var script = document.createElement('script');
         script.src = url + "?callback=response";
 		    document.body.appendChild(script);
   	  }
-	    	  
-	    	  
+
+
   	</script>
   ]]>
   </Content>
