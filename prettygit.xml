@@ -24,14 +24,14 @@
 		required="true"
 		datatype="string"
 		display_name="file path"
-		default_value="scripts/Code.js"/>
+		default_value="README.md"/>
 
 	<UserPref
 		name="feedtitle"
 		required="true"
 		datatype="string"
 		display_name="image label"
-		default_value="Hover here for source"/>
+		default_value="Hover here to see content"/>
 
 	<UserPref
 		name="imageurl"
@@ -40,10 +40,42 @@
 		display_name="image url for activation"
 		default_value="http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU"/>
 
+	<UserPref
+		name="markdown"
+		required="true"
+		datatype="bool"
+		display_name="translate from markdown"
+		default_value="false"/>
+		
+	<UserPref
+		name="prettify"
+		required="true"
+		datatype="bool"
+		display_name="source prettification"
+		default_value="true"/>
+		
+	<UserPref
+		name="reveal"
+		required="true"
+		datatype="bool"
+		display_name="permanently revealed"
+		default_value="false"/>
+		
+	<UserPref
+		name="dynamic"
+		required="true"
+		datatype="bool"
+		display_name="dynamic height"
+		default_value="true"/>
+		
   <Content type="html"><![CDATA[
 
     <link rel="stylesheet"
       type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.css">
+    <link rel="stylesheet"
+      type="text/css" href="https://googledrive.com/host/0B92ExLh4POiZZExOY2M0RW5objg">
+
+
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
 
         <style> {
@@ -65,7 +97,7 @@
             <table>
                 <tr>
                     <td>
-                        <img id="hoverimg" src="http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU">
+                        <img id="hoverimg" src="https://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU">
                     </td>
                     <td id="tdtitle" class="feedtitle">
 
@@ -109,7 +141,12 @@
           globs.user = prefs.getString("user");
           globs.repo = prefs.getString("repo") ;
           globs.path = prefs.getString("path") ;
-
+          globs.reveal = prefs.getBool("reveal") ;
+          globs.markdown = prefs.getBool("markdown") ;
+          globs.dynamic = prefs.getBool("dynamic") ;
+          globs.prettify = prefs.getBool("prettify") ;
+          
+          
           // construct the api url
           globs.feedUrl = "https://api.github.com/repos/" +
               globs.user + "/" +
@@ -132,13 +169,17 @@
     			}
 
           // clicker on whether to lock visibility status
-          globs.locked = false;
-
+          // if permanently revealed we can just lock it
+          globs.locked = globs.reveal;
+          if (globs.reveal) over();
+          
     			globs.hoverElem.addEventListener("mouseout",over , false);
   		   	globs.source.addEventListener("click",lock , false);
     			globs.hoverElem.addEventListener ("load", function () {
     				// when the image loads, get its height and adjust the gadget height to match
-    				gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+    				if (globs.dynamic ) {
+    				  gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+    			  }
     			}, false);
 
           // happens on mouseover
@@ -148,15 +189,18 @@
             globs.source.addEventListener("mouseout", out, false);
           	setVisiblity(globs.feedBox, true);
           	setVisiblity(globs.hoverElem, false);
-          	gadgets.window.adjustHeight(getHeight(globs.feedBox));
+          	
+          	if (globs.dynamic )gadgets.window.adjustHeight(getHeight(globs.feedBox));
           };
 
           // happens on mouseclick
           function lock () {
-            globs.locked = !globs.locked;
-
-            // do an implied out - if its locked then nothing will happen
-            out();
+            if (!globs.reveal ) {
+              globs.locked = !globs.locked;
+  
+              // do an implied out - if its locked then nothing will happen
+              out();
+            }
           };
 
           // happens on mouseout
@@ -168,7 +212,7 @@
 
             	setVisiblity(globs.feedBox, false);
             	setVisiblity(globs.hoverElem, true);
-            	gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+            	if(globs.dynamic)gadgets.window.adjustHeight(getHeight(globs.hoverElem));
             }
           };
 
@@ -193,6 +237,24 @@
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;");
+            
+            //now we do markdown translation
+            if (globs.markdown) {
+              corsRequest ( 
+                function (response) {
+                  setInner (response.responseText);
+                },
+                function (response) {
+                  setInner ("failed to markup (" + response.statusText + ")\n" + content);
+                },
+                "https://api.github.com/markdown",
+                "POST",
+                JSON.stringify({"text": content})
+              );
+            }
+            else {
+              setInner (content);
+            }
           }
           catch (err) {
             content = "failed to convert data from github " + err + ":perhaps browser is incapable";
@@ -201,14 +263,22 @@
           }
         }
 
+        
         globs.sourceTitleBox.innerHTML = ' Source for ' + globs.path +
           ' from ' + globs.user + "'s " +
           '<a href="https://github.com/' + globs.user + '/' + globs.repo + '">' +
           globs.repo + ' github repository</a>'
-
-        globs.source.innerHTML =  '<pre class="prettyprint" style="font-size:.8em;">' +  content + '</pre>';
-
-        prettyPrint();
+        
+        function setInner (con) {
+          globs.source.innerHTML =  '<pre class="prettyprint" style="font-size:.8em;">' +  con + '</pre>';
+          if (globs.prettify) {
+            globs.source.innerHTML =  '<pre class="prettyprint" style="font-size:.8em;">' +  con + '</pre>';
+            prettyPrint();
+          }
+          else {
+            globs.source.innerHTML = '<div class="markdown-body">' + con + '</div>';
+          }
+        }
       }
 
     	// jsonp response
@@ -228,6 +298,59 @@
 		    document.body.appendChild(script);
   	  }
 
+     /**
+     * get the correct xhr object for the browser being used
+     * @return {XDomainRequest|XMLHttpReQuest} the xhr
+     */
+    function getXhr () {
+      
+      // likely to be this, unless its IE
+      var xhr = new XMLHttpRequest();
+      return isDefined(xhr.withCredentials) ? 
+        xhr : (isDefined(XDomainRequest) ? new XDomainRequest () : undefined);
+    }
+    
+    function isDefined (ob) {
+      return typeof ob !== typeof undefined;
+    }
+  
+    /**
+     *do a cors request
+     *@param {function} callback the load callback
+     *@param {function} errorCallback the error callback
+     *@param {string}  url the url
+     *@param {string} method the method (default GET)
+     *@param {*} payload the optional payload
+     *@return {object} the response
+     */
+    function corsRequest (callback, errorCallback,url , method, payload ) {
+    
+      // get the appropriate xhr
+      var xhr = getXhr();
+      if (!xhr) throw 'cant do cors with this browser';
+      
+      // now we can go
+      xhr.open (method || "GET" , url , true);
+      
+      // set up callbacks
+      xhr.onload = function (response) {
+        // meed to catch this since it doesnt actually catch http errors
+        if (response.target.status <200 || response.target.status >=300) {
+          errorCallback (response);
+        }
+        else {
+          callback (response.target);
+        }
+          
+      }
+      xhr.onerror = function (response) {
+        errorCallback (response.target);
+      }
+      
+      // execute
+      return xhr.send (payload);
+    }
+    
 
   	</script>
   ]]>
