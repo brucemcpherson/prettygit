@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+	<ModulePrefs title="Google Books Gadget">
+  		<Require feature="dynamic-height"/>
+
+
+	</ModulePrefs>
+
+	<UserPref
+		name="isbn"
+		required="true"
+		datatype="string"
+		display_name="isbn number"
+		default_value="1491946180"/>
+		
+		
+	<UserPref
+		name="dynamic"
+		required="true"
+		datatype="bool"
+		display_name="dynamic height"
+		default_value="true"/>
+
+	
+  <Content type="html"><![CDATA[
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <style>
+    
+      .feedbox {
+        font-size:.8em;
+        padding:6px;
+      }
+      .feedtitle {
+        font-weight:bold;
+      }
+      .hover {
+        display:inline-block;
+      }
+      .viewer {
+        width:100%;
+        height: 600px;
+      }
+      
+    </style>
+  
+    <div id="hover" class="hover">
+      <table>
+        <tr>
+          <td>
+              <img id="hoverimg" src="https://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU">
+          </td>
+          <td id="tdtitle" class="feedtitle">
+          </td>
+        </tr>
+      </table>
+    </div>
+  
+    <div class="feedbox" id="feedbox" style="display:none;">
+      <div id="sourcetitlebox" class="feedtitle">
+      </div>
+      <div id="source" class="viewer">
+      </div>
+    </div>
+    
+    
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script>
+    
+      // register the entry point
+      gadgets.util.registerOnLoadHandler(doFeed);
+      
+      function setVisiblity (e, value) {
+       	e.style.display = value ? "inline-block" : "none";
+      }
+      
+      function getHeight (e) {
+       		return e.offsetHeight;
+      }
+      
+      // put all the params here
+      var globs;
+      
+      function doFeed() {
+      
+        // get the pref parameters
+        var prefs = new gadgets.Prefs();
+          
+        globs = {
+          reveal:true,
+          dynamic:prefs.getBool("dynamic"),
+          isbn: prefs.getString("isbn") ,
+          feedTitle:"Hover here to see image",
+          imageUrl:"http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU",
+          hoverElem:document.getElementById("hover"),
+          hoverImg:document.getElementById("hoverimg"),
+          feedBox:document.getElementById("feedbox"),
+          tdTitle:document.getElementById("tdtitle"),
+          sourceTitleBox:document.getElementById("sourcetitlebox"),
+          source:document.getElementById("source")
+        };
+      
+        // construct the api query
+        globs.feedUrl = 'ISBN:' + globs.isbn; 
+
+        // header
+        globs.tdTitle.innerHTML = globs.feedTitle +" (click to lock/unlock view)";
+      
+        // set up image events
+        globs.hoverImg.src = globs.imageUrl;
+      	if(!globs.hoverImg.src){
+      		console.log ("disabled feed display - no image provided");
+      	}
+      
+        // clicker on whether to lock visibility status
+        // if permanently revealed we can just lock it
+        globs.locked = globs.reveal;
+        if (globs.reveal) over();
+        
+      	globs.hoverElem.addEventListener("mouseout",over , false);
+       	globs.source.addEventListener("click",lock , false);
+      	globs.hoverElem.addEventListener ("load", function () {
+      		// when the image loads, get its height and adjust the gadget height to match
+      		if (globs.dynamic ) {
+      		  gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+      	  }
+      	}, false);
+      
+        // happens on mouseover
+        function over () {
+          // means we need to start showing the source
+          globs.hoverElem.removeEventListener("mouseover", over );
+          globs.source.addEventListener("mouseout", out, false);
+        	setVisiblity(globs.feedBox, true);
+        	setVisiblity(globs.hoverElem, false);
+        	console.log(getHeight(globs.feedBox));
+        	console.log(getHeight(globs.source));
+        	if (globs.dynamic ) {
+        	    gadgets.window.adjustHeight(getHeight(globs.feedBox));
+        	  }  
+        	}
+      
+        // happens on mouseclick
+        function lock () {
+          if (!globs.reveal ) {
+            globs.locked = !globs.locked;
+      
+            // do an implied out - if its locked then nothing will happen
+            out();
+          }
+        }
+      
+        // happens on mouseout
+        function out () {
+          // we are showing the source and need to stop if not locked
+          if (!globs.locked) {
+            globs.source.removeEventListener("mouseout",out);
+            globs.hoverElem.addEventListener("mouseover",over , false);
+      
+          	setVisiblity(globs.feedBox, false);
+          	setVisiblity(globs.hoverElem, true);
+          	if(globs.dynamic){
+          	    gadgets.window.adjustHeight(getHeight(globs.hoverElem));
+        	  }  
+          }
+        }
+      
+        // get the content
+        globs.sourceTitleBox.innerHTML = 'Content for Google Book-ISBN: ' + globs.isbn ;
+        getData();
+      
+      }
+      
+      function loadBook () {
+        globs.viewer = new google.books.DefaultViewer(globs.source);
+        globs.viewer.load(globs.feedUrl, function () {
+          globs.source.innerHTML = globs.feedUrl + "Book not found";
+        });
+      }
+      
+      function getData() {
+        google.load("books", "0");
+        google.setOnLoadCallback(loadBook);
+      }
+
+  	</script>
+  ]]>
+  </Content>
+</Module>
