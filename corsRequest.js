@@ -23,7 +23,7 @@
       xhr.onload = function (response) {
         // meed to catch this since it doesnt actually catch http errors
         if (response.target.status <200 || response.target.status >=300) {
-          errorCallback (response);
+          errorCallback (response.target);
         }
         else {
           callback (response.target);
