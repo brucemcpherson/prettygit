@@ -78,7 +78,8 @@
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prettify/r298/prettify.min.js"></script>
 
-        <style> {
+        <style> 
+        
           .feedbox {
             font-size:.8em;
             padding:6px;
@@ -90,7 +91,7 @@
             display:inline-block;
           }
 
-        }
+        
         </style>
 
         <div id="hover" class="hover">
@@ -298,21 +299,8 @@
 		    document.body.appendChild(script);
   	  }
 
-     /**
-     * get the correct xhr object for the browser being used
-     * @return {XDomainRequest|XMLHttpReQuest} the xhr
-     */
-    function getXhr () {
-      
-      // likely to be this, unless its IE
-      var xhr = new XMLHttpRequest();
-      return isDefined(xhr.withCredentials) ? 
-        xhr : (isDefined(XDomainRequest) ? new XDomainRequest () : undefined);
-    }
-    
-    function isDefined (ob) {
-      return typeof ob !== typeof undefined;
-    }
+ // thanks to http://enable-cors.org/ for info on cors/html5
+
   
     /**
      *do a cors request
@@ -349,6 +337,23 @@
       
       // execute
       return xhr.send (payload);
+      
+    /**
+    * get the correct xhr object for the browser being used
+    * @return {XDomainRequest|XMLHttpReQuest} the xhr
+    */
+     function getXhr () {
+       
+       // likely to be this, unless its IE
+       var xhr = new XMLHttpRequest();
+       return isDefined(xhr.withCredentials) ? 
+         xhr : (isDefined(XDomainRequest) ? new XDomainRequest () : undefined);
+     }
+     
+     function isDefined (ob) {
+       return typeof ob !== typeof undefined;
+     }
+     
     }
     
 
