@@ -1,19 +1,5 @@
  // thanks to http://enable-cors.org/ for info on cors/html5
- /**
- * get the correct xhr object for the browser being used
- * @return {XDomainRequest|XMLHttpReQuest} the xhr
- */
-    function getXhr () {
-      
-      // likely to be this, unless its IE
-      var xhr = new XMLHttpRequest();
-      return isDefined(xhr.withCredentials) ? 
-        xhr : (isDefined(XDomainRequest) ? new XDomainRequest () : undefined);
-    }
-    
-    function isDefined (ob) {
-      return typeof ob !== typeof undefined;
-    }
+
   
     /**
      *do a cors request
@@ -50,5 +36,22 @@
       
       // execute
       return xhr.send (payload);
+      
+       /**
+ * get the correct xhr object for the browser being used
+ * @return {XDomainRequest|XMLHttpReQuest} the xhr
+ */
+     function getXhr () {
+       
+       // likely to be this, unless its IE
+       var xhr = new XMLHttpRequest();
+       return isDefined(xhr.withCredentials) ? 
+         xhr : (isDefined(XDomainRequest) ? new XDomainRequest () : undefined);
+     }
+     
+     function isDefined (ob) {
+       return typeof ob !== typeof undefined;
+     }
+     
     }
     
