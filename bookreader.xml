@@ -47,7 +47,7 @@
       <table>
         <tr>
           <td>
-              <img id="hoverimg" src="https://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU">
+              <img id="hoverimg" src="https://storage.googleapis.com/goinggas.com/public/hosting/sites/xliberation/image/git.png">
           </td>
           <td id="tdtitle" class="feedtitle">
           </td>
@@ -90,7 +90,7 @@
           dynamic:prefs.getBool("dynamic"),
           isbn: prefs.getString("isbn") ,
           feedTitle:"Hover here to see image",
-          imageUrl:"http://googledrive.com/host/0B92ExLh4POiZcEJteERxZFNuVFU",
+          imageUrl:"https://storage.googleapis.com/goinggas.com/public/hosting/sites/xliberation/image/git.png",
           hoverElem:document.getElementById("hover"),
           hoverImg:document.getElementById("hoverimg"),
           feedBox:document.getElementById("feedbox"),
